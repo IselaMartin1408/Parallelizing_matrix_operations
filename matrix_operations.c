@@ -1,26 +1,67 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <omp.h> 
+#include <omp.h>
 
-void Usage(char* prog_name);
+int main(){
+    int size = 3;
+    double matrix[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0};
+    double inverse[size*size];
 
-int main(int argc, char* argv[]) {
-   long long n, i;
-   int thread_count;
-   double factor;
+    printf("Original matrix:\n");
+    print_matrix(matrix, size);
 
-   if (argc != 3) Usage(argv[0]);
-   thread_count = strtol(argv[1], NULL, 10);
-   n = strtoll(argv[2], NULL, 10);
+    inverse_matrix(matrix, inverse, size);
 
-   return 0;
-}  /* main */
+    printf("Inverse matrix:\n");
+    print_matrix(inverse, size);
+
+    return 0;
+}
 
 
-void Usage(char* prog_name) {
-   fprintf(stderr, "usage: %s <thread_count> <n>\n", prog_name);  /* Change */
-   fprintf(stderr, "   thread_count is the number of threads >= 1\n");  /* Change */
-   fprintf(stderr, "   n is the number of terms and should be >= 1\n");
-   exit(0);
-}  /* Usage */
+void print_matrix(double* matrix, int size){
+    for (int i=0; i<size; i++){
+        for (int j=0; j<size; j++){
+            printf("%f ", matrix[i*size+j]);
+        }
+        printf("\n");
+    }
+}
+
+void inverse_matrix(double* matrix, double* inverse, int size){
+    #pragma omp parallel for
+    for (int i=0; i<size; i++){
+        for (int j=0; j<size; j++){
+            inverse[i*size+j] = (i==j)? 1.0 : 0.0;
+        }
+    }
+
+    for (int k=0; k<size; k++){
+        double pivot = matrix[k*size+k];
+        #pragma omp parallel for
+        for (int j=0; j<size; j++){
+            matrix[k*size+j] /= pivot;
+            inverse[k*size+j] /= pivot;
+        }
+        #pragma omp parallel for
+        for (int i=k+1; i<size; i++){
+            double factor = matrix[i*size+k];
+            for (int j=0; j<size; j++){
+                matrix[i*size+j] -= factor * matrix[k*size+j];
+                inverse[i*size+j] -= factor * inverse[k*size+j];
+            }
+        }
+    }
+
+    for (int k=size-1; k>=0; k--){
+        #pragma omp parallel for
+        for (int i=k-1; i>=0; i--){
+            double factor = matrix[i*size+k];
+            for (int j=0; j<size; j++){
+                matrix[i*size+j] -= factor * matrix[k*size+j];
+                inverse[i*size+j] -= factor * inverse[k*size+j];
+            }
+        }
+    }
+}
+
