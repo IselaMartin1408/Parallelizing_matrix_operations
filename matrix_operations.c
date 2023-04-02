@@ -10,6 +10,7 @@ void Get_args(int argc, char* argv[], int* n_p, char* g_i_p);
 void Print_matrix(double **A, int n, char* title);
 void Generate_matrix(double **A, int n);
 void Read_matrix(double **A, int n);
+void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]);
 //double **matrix_inverse(double **A, int n);
 
 int main(int argc, char* argv[]){
@@ -17,6 +18,13 @@ int main(int argc, char* argv[]){
     char g_i;
     double **A;
     
+	// variables eigenvalores
+	double B[2][2] = {{1.0, 2.0},
+                      {3.0, 4.0}};
+    double eigenvalues[2];
+    double eigenvectors[2][2];
+	// fin variables eigenvalores
+	
    Get_args(argc, argv, &n, &g_i);
    A = (double **) malloc(n * sizeof(double *));
     if (g_i == 'g') { //Hace una matriz random
@@ -61,6 +69,11 @@ int main(int argc, char* argv[]){
 			double discriminant = sqrt(pow(A[0][0] + A[1][1], 2) - 4 * (A[0][0] * A[1][1] - A[0][1] * A[1][0]));
         }
     }*/
+	
+	// programa eigenvalores
+	eigenProgram(A,eigenvalues,eigenvectors);
+	// fin programa eigenvalores
+	
     return 0;
 }
 
@@ -196,3 +209,6 @@ double **matrix_inverse(double **A, int n) {
 }
 
 }*/
+void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]){
+
+}
