@@ -3,27 +3,30 @@
 #include <math.h>
 #include <omp.h>
 
+const int RMAX = 100;
+
 void Usage(char* prog_name);
-double **generate_matrix(int n);
-double **matrix_inverse(double **A, int n);
+void Get_args(int argc, char* argv[], int* n_p, char* g_i_p);
+void Print_matrix(double **A, int n, char* title);
+void Generate_matrix(double **A, int n);
+void Read_matrix(double **A, int n);
+//double **matrix_inverse(double **A, int n);
 
 int main(int argc, char* argv[]){
     int  n, num_threads;
-
-    if (argc != 2) Usage(argv[0]);
-    n = strtoll(argv[1], NULL, 10);
-
-    double **A = generate_matrix(n);
+    char g_i;
+    double **A;
     
-    
-    printf("Matriz generada aleatoriamente:\n");
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            printf("%.3f  ", A[i][j]);
-        }
-        printf("\n");
-    }
+   Get_args(argc, argv, &n, &g_i);
+   A = (double **) malloc(n * sizeof(double *));
+    if (g_i == 'g') { //Hace una matriz random
+        Generate_matrix(A, n);
+   } else { //Pide al usuario que ingrese los datos de la matriz
+        Read_matrix(A, n);
+   }
+   Print_matrix(A,n, "Matriz");//ocupen esta funcion para imprimir su matriz 
 
+/*  
     double **A_inv = matrix_inverse(A, n);
     
     printf("Matriz inversa:\n");
@@ -33,6 +36,18 @@ int main(int argc, char* argv[]){
         }
         printf("\n");
     }
+
+    double **A_trans = transpose_matrix(A, n);
+    
+    printf("Matriz transpuesta:\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%.3f  ", A_trans[i][j]);
+        }
+        printf("\n");
+    }
+
+
 
     num_threads = omp_get_max_threads();
     printf("Using %d threads\n", num_threads);
@@ -45,20 +60,51 @@ int main(int argc, char* argv[]){
         {
 			double discriminant = sqrt(pow(A[0][0] + A[1][1], 2) - 4 * (A[0][0] * A[1][1] - A[0][1] * A[1][0]));
         }
-    }
+    }*/
     return 0;
 }
 
-//la matriz debe ser cuadrada para eigenvalores e inversa por lo que solo se pide un valor para generar la matriz
+/*-----------------------------------------------------------------
+ * Function:  Usage
+ * Purpose:    Resumen de cómo ejecutar un programa
+ */
 void Usage(char* prog_name) {
    fprintf(stderr, "Usage: %s <n>\n", prog_name);
    fprintf(stderr, "   n: number of rows and columns in matrix\n");
-}
+   fprintf(stderr, "  'g':  generate matrix using a random number generator\n");
+   fprintf(stderr, "  'i':  user input matrix\n");
+} /* Usage */
 
 
-double **generate_matrix(int n) {
+/*-----------------------------------------------------------------
+ * Function:  Get_args
+ * Purpose:   Obtener y comprobar los argumentos de la línea de comandos
+ * In args:   argc, argv
+ * Out args:  n_p, g_i_p
+ */
+void Get_args(int argc, char* argv[], int* n_p, char* g_i_p) {
+   if (argc != 3 ) {
+      Usage(argv[0]);
+      exit(0);
+   }
+   *n_p = atoi(argv[1]);
+   *g_i_p = argv[2][0];
+
+   if (*n_p <= 0 || (*g_i_p != 'g' && *g_i_p != 'i') ) {
+      Usage(argv[0]);
+      exit(0);
+   }
+}  /* Get_args */
+
+/*-----------------------------------------------------------------
+ * Function:  Generate_matrix
+ * Purpose:   Utilizar un generador de números aleatorios para generar los elementos de la matriz
+ * In args:   n, A
+ * Out args:  A
+ */
+void Generate_matrix(double **A, int n) {
     int i,j;
-    double **A = (double **) malloc(n * sizeof(double *));
+
     #pragma omp parallel for private(i,j) shared(A)
     for ( i = 0; i < n; i++) {
         A[i] = (double *) malloc(n * sizeof(double));
@@ -67,8 +113,46 @@ double **generate_matrix(int n) {
             A[i][j] = ((double) rand() / (double) RAND_MAX) * 1000;
         }
     }
-    return A;
-}
+} /*Generate_matrix*/
+
+
+/*-----------------------------------------------------------------
+ * Function:  Print_matriz
+ * Purpose:   Imprime los elementos de la matriz
+ * In args:   A,n, titulo
+ */
+
+void Print_matrix(double **A, int n, char* title)
+{
+        printf("%s:\n", title);
+        for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%.3f  ", A[i][j]);
+        }
+        printf("\n");
+    }
+} /*Print_matriz*/
+
+
+/*-----------------------------------------------------------------
+ * Function:  Read_matriz
+ * Purpose:   Lee los elementos ingresados por el usuario y los guarda en la matriz A
+ * In args:   n,A
+ * Out args:  A
+ */
+void Read_matrix(double **A, int n)
+{
+    printf("Ingrese los elementos de la matriz:\n");
+    for (int i = 0; i < n; i++) {
+        A[i] = (double *) malloc(n * sizeof(double));
+        for (int j = 0; j < n; j++) {
+            scanf("%lf", &A[i][j]);
+        }
+    }
+} /*Read_matriz*/
+
+
+/*
 
 double **matrix_inverse(double **A, int n) {
     double **A_inv = (double **) malloc(n * sizeof(double *));
@@ -110,3 +194,5 @@ double **matrix_inverse(double **A, int n) {
 
     return A_inv;
 }
+
+}*/
