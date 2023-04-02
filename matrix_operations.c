@@ -210,5 +210,38 @@ double **matrix_inverse(double **A, int n) {
 
 }*/
 void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]){
+#pragma omp parallel sections shared(A, eigenvalues, eigenvectors)
+    {
+       
+        #pragma omp section
+        {
+            double discriminant = sqrt(pow(A[0][0] + A[1][1], 2) - 4 * (A[0][0] * A[1][1] - A[0][1] * A[1][0]));
+            eigenvalues[0] = (A[0][0] + A[1][1] + discriminant) / 2.0;
+            eigenvalues[1] = (A[0][0] + A[1][1] - discriminant) / 2.0;
+        }
 
+
+        #pragma omp section
+        {
+            double lambda1 = eigenvalues[0];
+            double lambda2 = eigenvalues[1];
+            double a = A[0][0];
+            double b = A[0][1];
+            double c = A[1][0];
+            double d = A[1][1];
+            double norm1 = sqrt(pow(lambda1 - d, 2) + pow(c, 2));
+            double norm2 = sqrt(pow(lambda2 - d, 2) + pow(c, 2));
+            eigenvectors[0][0] = (lambda1 - d) / norm1;
+            eigenvectors[0][1] = c / norm1;
+            eigenvectors[1][0] = (lambda2 - d) / norm2;
+            eigenvectors[1][1] = c / norm2;
+        }
+    }
+
+
+    printf("Eigenvalues: %f, %f\n", eigenvalues[0], eigenvalues[1]);
+    printf("Eigenvectors:\n");
+    printf("[ %f, %f ]\n", eigenvectors[0][0], eigenvectors[0][1]);
+    printf("[ %f, %f ]\n", eigenvectors[1][0], eigenvectors[1][1]);
+}
 }
