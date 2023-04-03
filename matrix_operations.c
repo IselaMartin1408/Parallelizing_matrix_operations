@@ -62,7 +62,7 @@ int main(int argc, char* argv[]){
     }*/
 	
 	// programa eigenvalores
-	eigenProgram(A,eigenvalues,eigenvectors);
+	eigenProgram(B,eigenvalues,eigenvectors);
     mxm(A, C, n);
 	// fin programa eigenvalores
 	
