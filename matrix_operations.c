@@ -258,11 +258,15 @@ void transpose(double **adj, int n) {
 }
 
 //-----------------------------------------------------------------
-void mxm(double **A,double **C, int n)
+void mxm(double **A, double **C, int n)
 {
     int j,k;
-    double MT[n][n];
-     // Inicializar la matriz C a cero
+    double **MT;
+    MT = (double*) malloc(n * sizeof(double));
+    for (int i = 0; i < n; i++) {
+        MT[i] = (double*) malloc(n * sizeof(double));
+    }
+    // Inicializar la matriz C a cero
     #pragma omp parallel for private(j,k)
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
@@ -279,7 +283,5 @@ void mxm(double **A,double **C, int n)
             }
         }
     }
-
-Print_matrix(MT,n, "MULTIPLICACION mXm");
-    
+    Print_matrix(MT,n, "MULTIPLICACION mXm");
 }
