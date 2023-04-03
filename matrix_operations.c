@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include <omp.h>
 
 const int RMAX = 100;
@@ -11,7 +12,7 @@ void Print_matrix(double **A, int n, char* title);
 void Generate_matrix(double **A, int n);
 void Read_matrix(double **A, int n);
 void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]);
-//double **matrix_inverse(double **A, int n);
+void matrix_inverse(double **A, int n);
 
 int main(int argc, char* argv[]){
     int  n, num_threads;
@@ -34,17 +35,10 @@ int main(int argc, char* argv[]){
    }
    Print_matrix(A,n, "Matriz");//ocupen esta funcion para imprimir su matriz 
 
-/*  
-    double **A_inv = matrix_inverse(A, n);
-    
-    printf("Matriz inversa:\n");
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            printf("%.3f  ", A_inv[i][j]);
-        }
-        printf("\n");
-    }
 
+    matrix_inverse(A, n);
+    
+/*
     double **A_trans = transpose_matrix(A, n);
     
     printf("Matriz transpuesta:\n");
@@ -116,17 +110,21 @@ void Get_args(int argc, char* argv[], int* n_p, char* g_i_p) {
  * Out args:  A
  */
 void Generate_matrix(double **A, int n) {
-    int i,j;
+    int i, j;
+    unsigned int seed;
 
-    #pragma omp parallel for private(i,j) shared(A)
-    for ( i = 0; i < n; i++) {
-        A[i] = (double *) malloc(n * sizeof(double));
-        #pragma omp parallel for
-        for ( j = 0; j < n; j++) {
-            A[i][j] = ((double) rand() / (double) RAND_MAX) * 1000;
+    // Generar una semilla aleatoria para cada fila
+    for (i = 0; i < n; i++) {
+        seed = (unsigned int) time(NULL) + i;
+        srand(seed);
+        
+        // Generar elementos aleatorios para cada columna de la fila
+        A[i] = (double*) malloc(n * sizeof(double));
+        for (j = 0; j < n; j++) {
+            A[i][j] = ((double) rand() / (double) RAND_MAX) * 100;
         }
     }
-} /*Generate_matrix*/
+}  /*Generate_matrix*/
 
 
 /*-----------------------------------------------------------------
@@ -165,9 +163,9 @@ void Read_matrix(double **A, int n)
 } /*Read_matriz*/
 
 
-/*
 
-double **matrix_inverse(double **A, int n) {
+
+void matrix_inverse(double **A, int n) {
     double **A_inv = (double **) malloc(n * sizeof(double *));
     #pragma omp parallel for
     for (int i = 0; i < n; i++) {
@@ -185,18 +183,19 @@ double **matrix_inverse(double **A, int n) {
     for (int i = 0; i < n; i++) {
         det = det + (A[0][i] * (A[1][(i+1)%n] * A[2][(i+2)%n] - A[1][(i+2)%n] * A[2][(i+1)%n]));
     }
-
+      
     if (det == 0) {
         printf("La matriz no es invertible.\n");
-        return A_inv;
-    }
 
+    }
+printf("la determinante es: %.3f \n",det);
     // Adjunta
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             adj[i][j] = pow(-1, i+j) * (A[(j+1)%n][(i+1)%n] * A[(j+2)%n][(i+2)%n] - A[(j+1)%n][(i+2)%n] * A[(j+2)%n][(i+1)%n]);
         }
     }
+Print_matrix(adj,n, "Matriz Adjunta");
 
     // Matriz inversa
     for (int i = 0; i < n; i++) {
@@ -204,11 +203,10 @@ double **matrix_inverse(double **A, int n) {
             A_inv[i][j] = adj[i][j] / det;
         }
     }
-
-    return A_inv;
+Print_matrix(A_inv,n, "Matriz inversa");
 }
 
-}*/
+
 void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]){
 #pragma omp parallel sections shared(A, eigenvalues, eigenvectors)
     {
@@ -243,5 +241,4 @@ void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2])
     printf("Eigenvectors:\n");
     printf("[ %f, %f ]\n", eigenvectors[0][0], eigenvectors[0][1]);
     printf("[ %f, %f ]\n", eigenvectors[1][0], eigenvectors[1][1]);
-}
 }
