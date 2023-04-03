@@ -133,10 +133,10 @@ void Generate_matrix(double **A, int n) {
 
 void Print_matrix(double **A, int n, char* title)
 {
-        printf("%s:\n", title);
+        printf("\n-----%s-----\n", title);
         for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            printf("%.3f  ", A[i][j]);
+            printf("[ %.3f ]", A[i][j]);
         }
         printf("\n");
     }
@@ -257,7 +257,7 @@ void transpose(double **adj, int n) {
     }
 }
 
-//-----------------------------------------------------------------
+//-------MULTIPLICACION MXM--------------------------------------
 void mxm(double **A, double **C, int n)
 {
     int j,k;
