@@ -13,6 +13,7 @@ void Generate_matrix(double **A, int n);
 void Read_matrix(double **A, int n);
 void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]);
 void matrix_inverse(double **A, int n);
+void transpose(double **adj, int n);
 
 int main(int argc, char* argv[]){
     int  n, num_threads;
@@ -38,19 +39,8 @@ int main(int argc, char* argv[]){
 
     matrix_inverse(A, n);
     
+
 /*
-    double **A_trans = transpose_matrix(A, n);
-    
-    printf("Matriz transpuesta:\n");
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            printf("%.3f  ", A_trans[i][j]);
-        }
-        printf("\n");
-    }
-
-
-
     num_threads = omp_get_max_threads();
     printf("Using %d threads\n", num_threads);
                       
@@ -195,7 +185,11 @@ printf("la determinante es: %.3f \n",det);
             adj[i][j] = pow(-1, i+j) * (A[(j+1)%n][(i+1)%n] * A[(j+2)%n][(i+2)%n] - A[(j+1)%n][(i+2)%n] * A[(j+2)%n][(i+1)%n]);
         }
     }
+transpose(adj,n);
+
 Print_matrix(adj,n, "Matriz Adjunta");
+
+
 
     // Matriz inversa
     for (int i = 0; i < n; i++) {
@@ -203,6 +197,7 @@ Print_matrix(adj,n, "Matriz Adjunta");
             A_inv[i][j] = adj[i][j] / det;
         }
     }
+transpose(A_inv,n);
 Print_matrix(A_inv,n, "Matriz inversa");
 }
 
@@ -241,4 +236,15 @@ void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2])
     printf("Eigenvectors:\n");
     printf("[ %f, %f ]\n", eigenvectors[0][0], eigenvectors[0][1]);
     printf("[ %f, %f ]\n", eigenvectors[1][0], eigenvectors[1][1]);
+}
+
+void transpose(double **adj, int n) {
+    double temp;
+    for (int i = 0; i < n; i++) {
+        for (int j = i+1; j < n; j++) {
+            temp = adj[i][j];
+            adj[i][j] = adj[j][i];
+            adj[j][i] = temp;
+        }
+    }
 }
