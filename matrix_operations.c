@@ -13,6 +13,7 @@ void Generate_matrix(double **A, int n);
 void Read_matrix(double **A, int n);
 void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]);
 void matrix_inverse(double **A, int n);
+double matrix_determinant(double **A, int n);
 void transpose(double **adj, int n);
 void mxm(double **A,double **C, int n);
 
@@ -62,7 +63,7 @@ int main(int argc, char* argv[]){
     }*/
 	
 	// programa eigenvalores
-	eigenProgram(A,eigenvalues,eigenvectors);
+	eigenProgram(B,eigenvalues,eigenvectors);
     mxm(A, C, n);
 	// fin programa eigenvalores
 	
@@ -178,35 +179,69 @@ void matrix_inverse(double **A, int n) {
     }
 
     // Determinante
-    for (int i = 0; i < n; i++) {
-        det = det + (A[0][i] * (A[1][(i+1)%n] * A[2][(i+2)%n] - A[1][(i+2)%n] * A[2][(i+1)%n]));
+    if (n == 1) {
+        det = A[0][0];
+    } else {
+        for (int i = 0; i < n; i++) {
+            double **submatrix = (double **) malloc((n-1) * sizeof(double *));
+            for (int j = 0; j < n-1; j++) {
+                submatrix[j] = (double *) malloc((n-1) * sizeof(double));
+            }
+            for (int j = 1; j < n; j++) {
+                int k = 0;
+                for (int l = 0; l < n; l++) {
+                    if (l != i) {
+                        submatrix[j-1][k] = A[j][l];
+                        k++;
+                    }
+                }
+            }
+            double sub_det = matrix_determinant(submatrix, n-1);
+            det += A[0][i] * pow(-1, i) * sub_det;
+        }
     }
-      
+
     if (det == 0) {
         printf("La matriz no es invertible.\n");
-
+        return;
     }
-printf("la determinante es: %.3f \n",det);
+    printf("Determinante = %f\n", det);
+
     // Adjunta
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            adj[i][j] = pow(-1, i+j) * (A[(j+1)%n][(i+1)%n] * A[(j+2)%n][(i+2)%n] - A[(j+1)%n][(i+2)%n] * A[(j+2)%n][(i+1)%n]);
+            double **submatrix = (double **) malloc((n-1) * sizeof(double *));
+            for (int k = 0; k < n-1; k++) {
+                submatrix[k] = (double *) malloc((n-1) * sizeof(double));
+            }
+            int p = 0;
+            for (int k = 0; k < n; k++) {
+                if (k != i) {
+                    int q = 0;
+                    for (int l = 0; l < n; l++) {
+                        if (l != j) {
+                            submatrix[p][q] = A[k][l];
+                            q++;
+                                               }
+                }
+                p++;
+            }
         }
+        double sub_det = matrix_determinant(submatrix, n-1);
+        adj[j][i] = pow(-1, i+j) * sub_det;
     }
-transpose(adj,n);
+}
 
-Print_matrix(adj,n, "Matriz Adjunta");
-
-
-
-    // Matriz inversa
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            A_inv[i][j] = adj[i][j] / det;
-        }
+// Matriz inversa
+for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+        A_inv[i][j] = adj[i][j] / det;
     }
-transpose(A_inv,n);
+}
+
+// Mostrar resultados
 Print_matrix(A_inv,n, "Matriz inversa");
+
 }
 
 
@@ -255,6 +290,31 @@ void transpose(double **adj, int n) {
             adj[j][i] = temp;
         }
     }
+}
+double matrix_determinant(double **A, int n) {
+    double det = 0;
+    if (n == 1) {
+        det = A[0][0];
+    } else {
+        for (int i = 0; i < n; i++) {
+            double **submatrix = (double **) malloc((n-1) * sizeof(double *));
+            for (int j = 0; j < n-1; j++) {
+                submatrix[j] = (double *) malloc((n-1) * sizeof(double));
+            }
+            for (int j = 1; j < n; j++) {
+                int k = 0;
+                for (int l = 0; l < n; l++) {
+                    if (l != i) {
+                        submatrix[j-1][k] = A[j][l];
+                        k++;
+                    }
+                }
+            }
+            double sub_det = matrix_determinant(submatrix, n-1);
+            det += A[0][i] * pow(-1, i) * sub_det;
+        }
+    }
+    return det;
 }
 
 //-------MULTIPLICACION MXM--------------------------------------
