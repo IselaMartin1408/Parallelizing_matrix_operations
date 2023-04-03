@@ -14,11 +14,13 @@ void Read_matrix(double **A, int n);
 void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]);
 void matrix_inverse(double **A, int n);
 void transpose(double **adj, int n);
+void mxm(double **A,double **C, int n);
 
 int main(int argc, char* argv[]){
     int  n, num_threads;
     char g_i;
     double **A;
+    double **C;
     
 	// variables eigenvalores
 	double B[2][2] = {{1.0, 2.0},
@@ -29,15 +31,20 @@ int main(int argc, char* argv[]){
 	
    Get_args(argc, argv, &n, &g_i);
    A = (double **) malloc(n * sizeof(double *));
+   C = (double **) malloc(n * sizeof(double *));
     if (g_i == 'g') { //Hace una matriz random
         Generate_matrix(A, n);
+        Generate_matrix(C, n);
    } else { //Pide al usuario que ingrese los datos de la matriz
         Read_matrix(A, n);
+        Read_matrix(C, n);
    }
    Print_matrix(A,n, "Matriz");//ocupen esta funcion para imprimir su matriz 
+   Print_matrix(C,n, "Matriz");//ocupen esta funcion para imprimir su matriz 
 
 
     matrix_inverse(A, n);
+    matrix_inverse(C, n);
     
 
 /*
@@ -56,6 +63,7 @@ int main(int argc, char* argv[]){
 	
 	// programa eigenvalores
 	eigenProgram(A,eigenvalues,eigenvectors);
+    mxm(A, C, n);
 	// fin programa eigenvalores
 	
     return 0;
@@ -247,4 +255,13 @@ void transpose(double **adj, int n) {
             adj[j][i] = temp;
         }
     }
+}
+
+//-----------------------------------------------------------------
+void mxm(double **A,double **C, int n)
+{
+    double MT[n][n];
+
+
+    
 }
