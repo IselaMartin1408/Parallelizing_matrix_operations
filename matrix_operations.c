@@ -163,7 +163,12 @@ void Read_matrix(double **A, int n)
 
 
 
-
+/*-----------------------------------------------------------------
+ * Function:  matrix_inverse
+ * Purpose:   Saca la inversa de una matriz
+ * In args:   n,A
+ * Out args:  A_inv
+ */
 void matrix_inverse(double **A, int n) {
     double **A_inv = (double **) malloc(n * sizeof(double *));
     #pragma omp parallel for
