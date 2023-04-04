@@ -11,14 +11,14 @@ void Get_args(int argc, char* argv[], int* n_p, char* g_i_p);
 void Print_matrix(double **A, int n, char* title);
 void Generate_matrix(double **A, int n);
 void Read_matrix(double **A, int n);
-void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]);
-void matrix_inverse(double **A, int n);
-double matrix_determinant(double **A, int n);
-void transpose(double **adj, int n);
-void mxm(double **A,double **C, int n);
+void EigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]);
+void Matrix_inverse(double **A, int n);
+double Matrix_determinant(double **A, int n);
+void Transpose(double **adj, int n);
+void Mxm(double **A,double **C, int n);
 
 int main(int argc, char* argv[]){
-    int  n, num_threads;
+    int  n;
     char g_i;
     double **A;
     double **C;
@@ -40,32 +40,14 @@ int main(int argc, char* argv[]){
         Read_matrix(A, n);
         Read_matrix(C, n);
    }
-   Print_matrix(A,n, "Matriz");//ocupen esta funcion para imprimir su matriz 
-   Print_matrix(C,n, "Matriz");//ocupen esta funcion para imprimir su matriz 
+   Print_matrix(A,n, "Matriz A");
+   Print_matrix(C,n, "Matriz B");
 
 
-    matrix_inverse(A, n);
-    matrix_inverse(C, n);
-    
-
-/*
-    num_threads = omp_get_max_threads();
-    printf("Using %d threads\n", num_threads);
-                      
-    double eigenvalues[2];
-    double eigenvectors[2][2];
-    #pragma omp parallel sections shared(A, eigenvalues, eigenvectors)
-    { 
-        #pragma omp section
-        {
-			double discriminant = sqrt(pow(A[0][0] + A[1][1], 2) - 4 * (A[0][0] * A[1][1] - A[0][1] * A[1][0]));
-        }
-    }*/
-	
-	// programa eigenvalores
-	eigenProgram(B,eigenvalues,eigenvectors);
-    mxm(A, C, n);
-	// fin programa eigenvalores
+    Matrix_inverse(A, n);
+	EigenProgram(B,eigenvalues,eigenvectors);
+    Transpose(A,n); 
+    Mxm(A, C, n);
 	
     return 0;
 }
@@ -164,12 +146,12 @@ void Read_matrix(double **A, int n)
 
 
 /*-----------------------------------------------------------------
- * Function:  matrix_inverse
- * Purpose:   Saca la inversa de una matriz
+ * Function:  Matrix_inverse
+ * Purpose:   Calcula la inversa de la matriz
  * In args:   n,A
  * Out args:  A_inv
  */
-void matrix_inverse(double **A, int n) {
+void Matrix_inverse(double **A, int n) {
     double **A_inv = (double **) malloc(n * sizeof(double *));
     #pragma omp parallel for
     for (int i = 0; i < n; i++) {
@@ -201,7 +183,7 @@ void matrix_inverse(double **A, int n) {
                     }
                 }
             }
-            double sub_det = matrix_determinant(submatrix, n-1);
+            double sub_det = Matrix_determinant(submatrix, n-1);
             det += A[0][i] * pow(-1, i) * sub_det;
         }
     }
@@ -210,9 +192,10 @@ void matrix_inverse(double **A, int n) {
         printf("La matriz no es invertible.\n");
         return;
     }
-    printf("Determinante = %f\n", det);
+    printf("\nDeterminante = %f\n", det);
 
     // Adjunta
+    #pragma omp parallel for 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             double **submatrix = (double **) malloc((n-1) * sizeof(double *));
@@ -232,10 +215,12 @@ void matrix_inverse(double **A, int n) {
                 p++;
             }
         }
-        double sub_det = matrix_determinant(submatrix, n-1);
+        double sub_det = Matrix_determinant(submatrix, n-1);
         adj[j][i] = pow(-1, i+j) * sub_det;
     }
 }
+
+        Print_matrix(adj,n, "Matriz adjunta");
 
 // Matriz inversa
 for (int i = 0; i < n; i++) {
@@ -247,10 +232,16 @@ for (int i = 0; i < n; i++) {
 // Mostrar resultados
 Print_matrix(A_inv,n, "Matriz inversa");
 
-}
+}/*Matrix_inverse*/
 
 
-void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]){
+/*-----------------------------------------------------------------
+ * Function:  EigenProgram
+ * Purpose:   Calcula el eigenvalor e eigenvector de una matriz
+ * In args:   A, eigenvalues, eigenvectors
+ * Out args:  A_inv
+ */
+void EigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2]){
 #pragma omp parallel sections shared(A, eigenvalues, eigenvectors)
     {
        
@@ -266,8 +257,6 @@ void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2])
         {
             double lambda1 = eigenvalues[0];
             double lambda2 = eigenvalues[1];
-            double a = A[0][0];
-            double b = A[0][1];
             double c = A[1][0];
             double d = A[1][1];
             double norm1 = sqrt(pow(lambda1 - d, 2) + pow(c, 2));
@@ -280,23 +269,44 @@ void eigenProgram(double A[2][2],double  eigenvalues[],double eigenvectors[][2])
     }
 
 
-    printf("Eigenvalues: %f, %f\n", eigenvalues[0], eigenvalues[1]);
-    printf("Eigenvectors:\n");
+    printf("\nEigenvalues: %f, %f\n", eigenvalues[0], eigenvalues[1]);
+    printf("\n----Eigenvectors:----\n");
     printf("[ %f, %f ]\n", eigenvectors[0][0], eigenvectors[0][1]);
     printf("[ %f, %f ]\n", eigenvectors[1][0], eigenvectors[1][1]);
-}
 
-void transpose(double **adj, int n) {
-    double temp;
-    for (int i = 0; i < n; i++) {
-        for (int j = i+1; j < n; j++) {
-            temp = adj[i][j];
-            adj[i][j] = adj[j][i];
-            adj[j][i] = temp;
+} /*EigenProgram*/
+
+
+/*-----------------------------------------------------------------
+ * Function:  Transpose
+ * Purpose:   Calcula la transpuesta de una matriz
+ * In args:   A, n
+ * Out args:  A_inv
+ */
+void Transpose(double **A, int n) {
+    int i, j;
+    double **trans;
+    trans = (double **) malloc(n * sizeof(double *));
+for (int i = 0; i < n; i++) {
+    trans[i] = (double *) malloc(n * sizeof(double));
+}
+     #pragma omp parallel for private(i,j) shared(trans)
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            trans[j][i] = A[i][j];
         }
     }
-}
-double matrix_determinant(double **A, int n) {
+    Print_matrix(trans,n, "Transpuesta");
+}/*Transpose*/
+
+
+/*-----------------------------------------------------------------
+ * Function:  Matrix_determinant
+ * Purpose:   Calcula la determinante de una matriz
+ * In args:   A, n
+ * Out args:  det
+ */
+double Matrix_determinant(double **A, int n) {
     double det = 0;
     if (n == 1) {
         det = A[0][0];
@@ -315,25 +325,31 @@ double matrix_determinant(double **A, int n) {
                     }
                 }
             }
-            double sub_det = matrix_determinant(submatrix, n-1);
+            double sub_det = Matrix_determinant(submatrix, n-1);
             det += A[0][i] * pow(-1, i) * sub_det;
         }
     }
     return det;
-}
+}/*Matrix_determinant*/
 
-//-------MULTIPLICACION MXM--------------------------------------
-void mxm(double **A, double **C, int n)
+
+/*-----------------------------------------------------------------
+ * Function:  Mxm
+ * Purpose:   Calcula la multipliacion de dos matrices
+ * In args:   A, C, n
+ * Out args:  MT
+ */
+void Mxm(double **A, double **C, int n)
 {
-    int j,k;
-    double **MT;
-    MT = (double*) malloc(n * sizeof(double));
-    for (int i = 0; i < n; i++) {
-        MT[i] = (double*) malloc(n * sizeof(double));
-    }
+    int i, j,k;
+   double **MT;
+   MT = (double **) malloc(n * sizeof(double *));
+   for (int i = 0; i < n; i++) {
+      MT[i] = (double *) malloc(n * sizeof(double));
+   }
     // Inicializar la matriz C a cero
     #pragma omp parallel for private(j,k)
-    for (int i = 0; i < n; i++) {
+    for ( i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             MT[i][j] = 0;
         }
@@ -341,12 +357,12 @@ void mxm(double **A, double **C, int n)
 
     // Multiplicar las matrices A y B
     #pragma omp parallel for private(j,k)
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            for (int k = 0; k < n; k++) {
+    for ( i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            for ( k = 0; k < n; k++) {
                 MT[i][j] += A[i][k] * C[k][j];
             }
         }
     }
-    Print_matrix(MT,n, "MULTIPLICACION mXm");
-}
+    Print_matrix(MT,n, "Multiplicacion");
+} /*Mxm*/
